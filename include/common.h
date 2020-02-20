@@ -87,12 +87,12 @@ struct Context {
             if (currentSignUp < D) {
                 int nb = 0;
                 int day = 0;
-                for (size_t i = 0; i < Libs[id].Books.size(); ++i) {
+                for (size_t i = 0; i < lib.Books.size(); ++i) {
                     if (nb == Libs[id].M) {
                         day++;
                         nb = 0;
                     }
-                    int book = Libs[id].Books[i];
+                    int book = lib.Books[i];
                     assert(0 <= book && book < B);
                     if (!IsScanned[book] && currentSignUp + day < D) {
                         score += Scores[book];
