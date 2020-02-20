@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <cassert>
+#include <random>
 #include <cmath>
 #include <string>
 #include <queue>
@@ -27,7 +28,25 @@ struct TQueueEntry {
 struct MySolver : public Context {
     void Solve() {
         auto daysLeft = D;
+        auto libsLeft = L;
         unordered_set<int> usedBookIds;
+        vector<int> bookCounts(B, 0);
+        for (const auto& lib : Libs) {
+            for (const auto& book : lib.Books) {
+                ++bookCounts[book];
+            }
+        }
+
+        std::random_device rd;  //Will be used to obtain a seed for the random number engine
+        std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+
+        auto getBookRemovingProba = [&](int book) {
+            std::bernoulli_distribution distr(
+                static_cast<double>(bookCounts[book] - 1) / static_cast<double>(libsLeft)
+            );
+            return distr(gen);
+        };
+
 
         auto updatePrefixSum = [&](TQueueEntry& entry) {
             entry.LibraryPrefixSum = {0};
@@ -49,7 +68,25 @@ struct MySolver : public Context {
                 return 0;
             }
             long long lastBook = min(1llu * entry.Books.size(), 1llu * lib.M * (daysLeft - lib.T));
+            // long long numBatches = (lastBook + lib.M - 1) / lib.M;
             return static_cast<double>(entry.LibraryPrefixSum[lastBook]) / static_cast<double>(lib.T);
+        };
+
+        auto selectBooks = [&](const vector<int>& books, int batchSize) {
+            if (1llu * batchSize * daysLeft >= books.size()) {
+                return books;
+            }
+            std::vector<int> result;
+            for (int i = books.size() - 1; i >= 0; --i) {
+                if (1 + i + result.size() <= 1llu * batchSize * daysLeft) {
+                    result.push_back(books[i]);
+                    continue;
+                }
+                if (getBookRemovingProba(books[i])) {
+                    continue;
+                }
+            }
+            return result;
         };
 
         auto taskComparator = [&] (const auto& lhs, const auto& rhs) {
@@ -92,9 +129,17 @@ struct MySolver : public Context {
             daysLeft -= Libs[curEntry.LibNum].T;
             Solution.SignedLibs.push_back(TSolLib{
                 .Id = curEntry.LibNum,
-                .Books = curEntry.Books
+                .Books = selectBooks(curEntry.Books, Libs[curEntry.LibNum].M)
+                // .Books = curEntry.Books
             });
-            usedBookIds.insert(curEntry.Books.begin(), curEntry.Books.end());
+            usedBookIds.insert(
+                Solution.SignedLibs.back().Books.begin(),
+                Solution.SignedLibs.back().Books.end()
+            );
+            for (const auto& book : curEntry.Books) {
+                --bookCounts[book];
+            }
+            --libsLeft;
         }
     }
 };
