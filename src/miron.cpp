@@ -68,8 +68,11 @@ struct MySolver : public Context {
                 return 0;
             }
             long long lastBook = min(1llu * entry.Books.size(), 1llu * lib.M * (daysLeft - lib.T));
-            // long long numBatches = (lastBook + lib.M - 1) / lib.M;
-            return static_cast<double>(entry.LibraryPrefixSum[lastBook]) / static_cast<double>(lib.T);
+            long long numBatches = (lastBook + lib.M - 1) / lib.M;
+            auto batchesMultiplier = log(max(- numBatches + daysLeft, 2ll));
+            // auto batchesMultiplier = static_cast<double>(daysLeft) / static_cast<double>(numBatches);
+            // std::cerr << batchesMultiplier << "\n";
+            return static_cast<double>(entry.LibraryPrefixSum[lastBook]) / static_cast<double>(lib.T) - batchesMultiplier;
         };
 
         auto selectBooks = [&](const vector<int>& books, int batchSize) {
