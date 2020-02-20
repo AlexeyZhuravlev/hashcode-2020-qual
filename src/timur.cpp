@@ -47,28 +47,52 @@ struct MySolver : public Context {
         }
     }
 
-    vector<int> sortedLibraries;
-    int sortedLibrariesIdx;
+    bool usedLibraries[100000];
 
-    void SingUpNewLibrary(int& nextLib, int& nextSingUpDay) {
+    void SingUpNewLibrary(int& nextLib, int& nextSingUpDay, const int day) {
         if (cur_libs.size() == L) {
             nextSingUpDay = -1;
             return;
         }
-        int result_idx = sortedLibraries[sortedLibrariesIdx++];
+
+        int result_idx = -1;
+        double maxScore = 0;
+
+        for (int i = 0; i < L; ++i) {
+            if (usedLibraries[i]) {
+                continue;
+            }
+
+            const auto& l = Libs[i];
+
+            int remained = D - day - l.T;
+            int remainedBooks = remained * l.M;
+
+            double score = 0;
+
+            for (int b : l.Books) {
+                if (!remainedBooks) {
+                    break;
+                }
+                if (!usedBooks[b]) {
+                    score += Scores[b];
+                    --remainedBooks;
+                }
+            }
+
+            if (score > maxScore) {
+                maxScore = score;
+                result_idx = i;
+            }
+        }
 
         nextLib = result_idx;
+        usedLibraries[nextLib] = true;
         nextSingUpDay += Libs[result_idx].T;
     }
 
 
     void Solve() {
-        for (int i = 0; i < L; ++i) {
-            sortedLibraries.push_back(i);
-        }
-        sort(sortedLibraries.begin(), sortedLibraries.end(), [&](int a, int b) {
-            return Libs[a].M > Libs[b].M;
-        });
 
         int nextLib = -1;
         int nextSingUpDay = 0;
@@ -77,9 +101,11 @@ struct MySolver : public Context {
                 if (nextLib != -1) {
                     Add(nextLib);
                 }
-                SingUpNewLibrary(nextLib, nextSingUpDay);
             }
             SelectBooks();
+            if (d == nextSingUpDay) {
+                SingUpNewLibrary(nextLib, nextSingUpDay, d);
+            }
         }
         for (int i = 0; i < cur_libs.size(); ++i) {
             if (chosen_books[i].size()) {
