@@ -1,1 +1,1 @@
-# hashcode-2019
+# hashcode-2020 qualification round

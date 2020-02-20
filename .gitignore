@@ -1,3 +1,5 @@
+compile_commands.json
+.DS_Store
 CMakeCache.txt
 CMakeFiles
 Makefile
