@@ -56,7 +56,7 @@ struct Context {
                 cin >> Libs[i].Books[j];
             }
             sort(Libs[i].Books.begin(), Libs[i].Books.end(), [&](int ba, int bb) {
-                return Scores[ba] >= Scores[bb];
+                return Scores[ba] > Scores[bb];
             });
         }
     }
@@ -79,6 +79,7 @@ struct Context {
         int64_t currentSignUp = 0;
         for (auto& lib : Solution.SignedLibs) {
             int id = lib.Id;
+            cerr << id << endl;
             assert(0 <= id && id < L);
             assert(!IsSigned[id] && "signed library twice.");
             IsSigned[id] = true;

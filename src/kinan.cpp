@@ -41,6 +41,7 @@ struct MySolver : public Context {
                 libs.push_back(DP[x]);
                 x = x - Libs[DP[x]].T;
             }
+            break;
         }
         reverse(libs.begin(), libs.end());
         for (auto l : libs) {
