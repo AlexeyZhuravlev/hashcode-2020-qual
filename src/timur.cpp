@@ -17,6 +17,7 @@
 using namespace std;
 
 bool usedBooks[MAX_B];
+bool willBeScanned[MAX_B];
 
 struct MySolver : public Context {
 
@@ -24,15 +25,23 @@ struct MySolver : public Context {
     vector<int> pointers;
     vector<vector<int>> chosen_books;
 
-    void Add(int idx) {
+    void Add(int idx, int day) {
         cur_libs.push_back(idx);
         pointers.push_back(0);
         chosen_books.emplace_back();
+
+        int maxBooksToSend = (D - day) * Libs[idx].M;
+        for (int p = 0; p < Libs[idx].N && maxBooksToSend; p++) {
+            auto b_idx = Libs[idx].Books[p];
+            if (!usedBooks[b_idx]) {
+                willBeScanned[b_idx] = true;
+                maxBooksToSend--;
+            }
+        }
     }
 
     double GetLibScore(int i, int day) { // i in cur_libs
         int l_idx = cur_libs[i];
-        int p = pointers[i]; // copy!
 
         int totalRemainedBooks = 0;
         int totalRemainedScore = 0;
@@ -60,9 +69,9 @@ struct MySolver : public Context {
         for (int i = 0; i < cur_libs.size(); ++i) {
             order.push_back(i);
         }
-        sort(order.begin(), order.end(), [&](int a, int b) {
-            return GetLibScore(a, day) > GetLibScore(b, day);
-        });
+//        sort(order.begin(), order.end(), [&](int a, int b) {
+//            return GetLibScore(a, day) > GetLibScore(b, day);
+//        });
 
         for (int i : order) { // try another order
 
@@ -82,6 +91,17 @@ struct MySolver : public Context {
     }
 
     bool usedLibraries[100000];
+
+    int numLibraries[MAX_B];
+
+    double IntersectionScore(int b) {
+        return log(1 + numLibraries[b]);
+    }
+
+    double GetBookScore(int b) {
+        // check for current libraries;
+        return Scores[b]; // / IntersectionScore(b);
+    }
 
     void SingUpNewLibrary(int& nextLib, int& nextSingUpDay, const int day) {
         if (cur_libs.size() == L) {
@@ -109,7 +129,9 @@ struct MySolver : public Context {
                     break;
                 }
                 if (!usedBooks[b]) {
-                    score += Scores[b];
+                    if (!willBeScanned[b]) {
+                        score += GetBookScore(b);
+                    }
                     --remainedBooks;
                 }
             }
@@ -130,12 +152,18 @@ struct MySolver : public Context {
 
     void Solve() {
 
+        for (const auto& l : Libs) {
+            for (int b : l.Books) {
+                numLibraries[b]++;
+            }
+        }
+
         int nextLib = -1;
         int nextSingUpDay = 0;
         for(int d = 0; d < D; ++d) {
             if (d == nextSingUpDay) {
                 if (nextLib != -1) {
-                    Add(nextLib);
+                    Add(nextLib, d);
                 }
             }
             SelectBooks(d);
