@@ -30,8 +30,42 @@ struct MySolver : public Context {
         chosen_books.emplace_back();
     }
 
-    void SelectBooks() {
-        for (int i = 0; i < cur_libs.size(); ++i) { // try another order
+    double GetLibScore(int i, int day) { // i in cur_libs
+        int l_idx = cur_libs[i];
+        int p = pointers[i]; // copy!
+
+        int totalRemainedBooks = 0;
+        int totalRemainedScore = 0;
+        int estimatedRemainedBooks = 0;
+        int estimatedRemainedScore = 0;
+        int maxBooksToSend = (D - day) * Libs[l_idx].M;
+
+        for (int p = pointers[i]; p < Libs[l_idx].N; p++) {
+            auto b_idx = Libs[l_idx].Books[p];
+            if (!usedBooks[b_idx]) {
+                if (totalRemainedBooks < maxBooksToSend) {
+                    estimatedRemainedBooks += 1;
+                    estimatedRemainedScore += Scores[b_idx];
+                }
+                totalRemainedBooks += 1;
+                totalRemainedScore += Scores[b_idx];
+            }
+        }
+
+        return estimatedRemainedBooks * 1.0 / Libs[l_idx].M;
+    }
+
+    void SelectBooks(int day) {
+        vector<int> order;
+        for (int i = 0; i < cur_libs.size(); ++i) {
+            order.push_back(i);
+        }
+        sort(order.begin(), order.end(), [&](int a, int b) {
+            return GetLibScore(a, day) > GetLibScore(b, day);
+        });
+
+        for (int i : order) { // try another order
+
             int l_idx = cur_libs[i];
             int& p = pointers[i];
 
@@ -80,7 +114,7 @@ struct MySolver : public Context {
                 }
             }
 
-            score /= log(Libs[i].T);
+            score /= Libs[i].T;
 
             if (score > maxScore) {
                 maxScore = score;
@@ -104,7 +138,7 @@ struct MySolver : public Context {
                     Add(nextLib);
                 }
             }
-            SelectBooks();
+            SelectBooks(d);
             if (d == nextSingUpDay) {
                 SingUpNewLibrary(nextLib, nextSingUpDay, d);
             }
