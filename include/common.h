@@ -41,13 +41,14 @@ struct Context {
     int L;
     int D;
     int Scores[MAX_B];
-    TLibrary Libs[MAX_B];
+    vector<TLibrary> Libs;
 
     void Input() {
         cin >> B >> L >> D;
         for (int i = 0; i < B; ++i) {
             cin >> Scores[i];
         }
+        Libs.resize(L);
         for (int i = 0; i < L; ++i) {
             cin >> Libs[i].N >> Libs[i].T >> Libs[i].M;
             Libs[i].Books.resize(Libs[i].N);
@@ -75,7 +76,7 @@ struct Context {
     uint64_t GetScore() {
         uint64_t score = 0;
         memset(IsSigned, false, sizeof(IsSigned));
-        uint64_t currentSignUp = 0;
+        int64_t currentSignUp = 0;
         for (auto& lib : Solution.SignedLibs) {
             int id = lib.Id;
             assert(0 <= id && id < L);
@@ -85,12 +86,12 @@ struct Context {
             if (currentSignUp < D) {
                 int nb = 0;
                 int day = 0;
-                for (int i = 0; i < Libs[id].Books.size(); ++i) {
+                for (size_t i = 0; i < Libs[id].Books.size(); ++i) {
                     if (nb == Libs[id].M) {
                         day++;
                         nb = 1;
                     }
-                    int book = Scores[Libs[id].Books[i]];
+                    int book = Libs[id].Books[i];
                     assert(0 <= book && book < B);
                     if (currentSignUp + day < D) {
                         score += Scores[Libs[id].Books[i]];
