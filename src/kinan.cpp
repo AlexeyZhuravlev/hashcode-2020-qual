@@ -43,7 +43,6 @@ struct MySolver : public Context {
             }
             break;
         }
-        reverse(libs.begin(), libs.end());
         for (auto l : libs) {
             TSolLib cur;
             cur.Id = l;

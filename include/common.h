@@ -72,14 +72,14 @@ struct Context {
         }
     }
 
-    bool IsSigned[MAX_B];
+    bool IsSigned[MAX_B], IsScanned[MAX_B];
     uint64_t GetScore() {
         uint64_t score = 0;
         memset(IsSigned, false, sizeof(IsSigned));
+        memset(IsScanned, false, sizeof(IsScanned));
         int64_t currentSignUp = 0;
         for (auto& lib : Solution.SignedLibs) {
             int id = lib.Id;
-            cerr << id << endl;
             assert(0 <= id && id < L);
             assert(!IsSigned[id] && "signed library twice.");
             IsSigned[id] = true;
@@ -90,13 +90,15 @@ struct Context {
                 for (size_t i = 0; i < Libs[id].Books.size(); ++i) {
                     if (nb == Libs[id].M) {
                         day++;
-                        nb = 1;
+                        nb = 0;
                     }
                     int book = Libs[id].Books[i];
                     assert(0 <= book && book < B);
-                    if (currentSignUp + day < D) {
-                        score += Scores[Libs[id].Books[i]];
+                    if (!IsScanned[book] && currentSignUp + day < D) {
+                        score += Scores[book];
                     }
+                    IsScanned[book] = true;
+                    nb++;
                 }
             }
         }
