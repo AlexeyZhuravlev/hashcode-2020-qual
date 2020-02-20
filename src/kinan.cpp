@@ -22,9 +22,9 @@ struct MySolver : public Context {
     }
 };
 
-int main() {
-    MySolver solver;
+MySolver solver;
 
+int main() {
     solver.Input();
 
     auto start = std::chrono::system_clock::now();
