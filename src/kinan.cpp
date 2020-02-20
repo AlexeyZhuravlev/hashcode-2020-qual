@@ -17,38 +17,63 @@
 using namespace std;
 
 int DP[MAX_B];
+vector<int> P[MAX_B];
 
 struct MySolver : public Context {
     void Solve() {
         memset(DP, -1, sizeof(DP));
-        DP[0] = -2;
+        DP[0] = 0;
         for (int l = 0; l < L; l++) {
             auto& lib = Libs[l];
-            for (int i = D - 1 - lib.T; i >= 0; i--) {
-                if (DP[i] == -1 || DP[i + lib.T] != -1) {
+            for (int i = D - 1; i >= lib.T; i--) {
+                if (DP[i - lib.T] == -1) {
                     continue;
                 }
-                DP[i + lib.T] = l;
+                if (DP[i] == -1 || DP[i - lib.T] + 1 > DP[i]) {
+                    DP[i] = DP[i - lib.T] + 1;
+                    P[i] = P[i - lib.T];
+                    P[i].push_back(l);
+                }
             }
         }
-        vector<int> libs;
-        for (int l = D - 1; l >= 0; l--) {
-            if (DP[l] == -1) {
+        int mx = -1;
+        int score = 0;
+        vector<int> slib;
+        for (int i = 0; i < D; i++) {
+            if (DP[i] == -1) {
                 continue;
             }
-            int x = l;
-            while (DP[x] >= 0) {
-                libs.push_back(DP[x]);
-                x = x - Libs[DP[x]].T;
+            vector<int> libs;
+            libs = P[i];
+            sort(libs.begin(), libs.end(), [&](int a, int b) {
+                return Libs[a].T < Libs[b].T;
+            });
+            if (libs.size() < 2) {
+                continue;
             }
-            break;
+            while (!libs.empty()) {
+                Solution.SignedLibs.clear();
+                for (auto l : libs) {
+                    TSolLib cur;
+                    cur.Id = l;
+                    cur.Books = Libs[l].Books;
+                    Solution.SignedLibs.push_back(std::move(cur));
+                }
+                if (GetScore() > score) {
+                    score = GetScore();
+                    mx = i;
+                    slib = libs;
+                }
+                libs.erase(libs.begin());
+            }
         }
-        for (auto l : libs) {
-            TSolLib cur;
-            cur.Id = l;
-            cur.Books = Libs[l].Books;
-            Solution.SignedLibs.push_back(std::move(cur));
-        }
+            Solution.SignedLibs.clear();
+            for (auto l : slib) {
+                TSolLib cur;
+                cur.Id = l;
+                cur.Books = Libs[l].Books;
+                Solution.SignedLibs.push_back(std::move(cur));
+            }
     }
 };
 

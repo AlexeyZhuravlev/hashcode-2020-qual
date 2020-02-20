@@ -80,7 +80,7 @@ struct MySolver : public Context {
                 }
             }
 
-            score /= log(Libs[i].T);
+            score /= Libs[i].T;
 
             if (score > maxScore) {
                 maxScore = score;
